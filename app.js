@@ -1,7 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const graphqlHTTP = require('express-graphql');
-const { buildSchema } = require('graphql')
+const { buildSchema } = require('graphql');
+const mongoose = require('mongoose');
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -61,6 +63,9 @@ app.use('/graphql', graphqlHTTP({
   })
 )
 
-app.listen(Port, () => {
-    console.log(`Listening on Port ${Port}`)
+mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0-fy13j.mongodb.net/test?retryWrites=true`)
+.then(() => {
+    app.listen(Port);
+}).catch(err => {
+    console.log(err);
 })
