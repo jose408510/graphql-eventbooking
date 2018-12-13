@@ -13,7 +13,6 @@ const events = [];
 
 app.use('/graphql', graphqlHTTP({
     schema: buildSchema(`
-        
         type Event {
             _id: ID!
             title: String!
