@@ -42,7 +42,13 @@ app.use('/graphql', graphqlHTTP({
     `),
     rootValue: {
         events: () => {
-            return events
+           return Event.find()
+            .then(events => {
+                return events.map(event =>{ //to remove metadata that comes with mongoose 
+                    return {...event._doc , _id: event._doc._id.toString() }
+                })
+            })
+            .catch()
         },
         createEvent: args => {
             const event = new Event ({
@@ -55,7 +61,7 @@ app.use('/graphql', graphqlHTTP({
             .save()
             .then(result => {
                 console.log(result)
-                return {...result._doc}; // 
+                return {...result._doc , _id: event.id }; // 
             })
             .catch(err => {
                 console.log(err)
