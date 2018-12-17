@@ -69,13 +69,26 @@ app.use('/graphql', graphqlHTTP({
             title: args.eventInput.title,
             description: args.eventInput.description,
             price: +args.eventInput.price,
-            date: new Date(args.eventInput.date)
+            date: new Date(args.eventInput.date),
+            creator: "5c1807129c9d8d9060bce20c"
             })
+            let createdEvent;
+            console.log(event)
             return event
             .save()
             .then(result => {
-                console.log(result)
-                return {...result._doc , _id: event.id }; // 
+                createdEvent = {...result._doc , _id: event.id }
+                return User.findById("5c1807129c9d8d9060bce20c")
+            })
+            .then( user => {
+                if(!user) {
+                    throw new Error(" User not found")
+                }
+                console.log(event)
+                user.createdEvents.push(event) //createdEvents from models in user 
+                return user.save()
+            }).then(result => {
+                return createdEvent;
             })
             .catch(err => {
                 console.log(err)
@@ -83,11 +96,19 @@ app.use('/graphql', graphqlHTTP({
             })
         },
         createUser: args => {
+            return User.findOne({
+                email: args.userInput.email
+            }).then(user => {
+                if(user) {
+                    throw new Error('User exist Already')
+                }
+                return bcrypt.hash(args.userInput.password, 12)
+            })
             return bcrypt // saying bascilly wait until its resolved asyn opperation
-            .hash(args.UserInput.password , 12)
+            .hash(args.userInput.password , 12)
             .then( hashedPassword => {
                 const user = new User ({
-                    email: args.UserInput.email,
+                    email: args.userInput.email,
                     password: hashedPassword
                 });
                 return user.save();
