@@ -3,7 +3,10 @@ const bodyParser = require('body-parser');
 const graphqlHTTP = require('express-graphql');
 const { buildSchema } = require('graphql');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs')
+
 const Event = require('./models/event')
+const User = require('./models/user')
 
 const app = express();
 
@@ -32,7 +35,7 @@ app.use('/graphql', graphqlHTTP({
             date: String!
         }
 
-        input UserInut {
+        input UserInput {
             email: String!
             password: String!
         }
@@ -77,6 +80,23 @@ app.use('/graphql', graphqlHTTP({
             .catch(err => {
                 console.log(err)
                 throw err;
+            })
+        },
+        createUser: args => {
+            return bcrypt // saying bascilly wait until its resolved asyn opperation
+            .hash(args.UserInput.password , 12)
+            .then( hashedPassword => {
+                const user = new User ({
+                    email: args.UserInput.email,
+                    password: hashedPassword
+                });
+                return user.save();
+            })
+            .then( result =>{
+                return { ...result._doc, _id: result.id }
+            })
+            .catch(err => {
+                throw err; 
             })
         }
     },
