@@ -13,6 +13,33 @@ const app = express();
 app.use(bodyParser.json());
 const Port = process.env.Port || 3000 
 
+const events = eventIds => {
+    return Event.find({_id: {$in: eventIds}})
+    .then(events => {
+        return events.map(event => {
+            return { ...event._doc, id: event.id, creator: user.bind(this, event.creator)}
+        })
+    })
+    .catch(err => {
+        throw err;
+    }) 
+}
+
+
+const user = userId => {
+    return User.findById(userId)
+    .then(user => {
+        return { 
+            ...user._doc,
+             _id: user.id,
+            createEvents: events.bind(this, user._doc.createEvents)
+        }
+    })
+    .catch( err => {
+        throw err;
+    })
+}
+
 app.use('/graphql', graphqlHTTP({
     schema: buildSchema(`
         type Event {
@@ -20,12 +47,14 @@ app.use('/graphql', graphqlHTTP({
             title: String!
             description: String!
             price: Float!
-            date: String! 
+            date: String!
+            creator: User! 
         }
         type User {
             _id: ID!
             email: String!
             password: String
+            createdEvents: [Event!]
         }
 
         input EventInput {
@@ -57,9 +86,14 @@ app.use('/graphql', graphqlHTTP({
     rootValue: {
         events: () => {
            return Event.find()
+           .populate('creator')
             .then(events => {
-                return events.map(event =>{ //to remove metadata that comes with mongoose 
-                    return {...event._doc , _id: event._doc._id.toString() }
+                return events.map(event => { //to remove metadata that comes with mongoose 
+                    return {
+                        ...event._doc ,
+                         _id: event._doc._id.toString(),
+                         creator: user.bind(this, event._doc.creator)
+                     }
                 })
             })
             .catch()
