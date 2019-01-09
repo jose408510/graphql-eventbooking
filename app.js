@@ -12,7 +12,6 @@ app.use(bodyParser.json());
 const Port = process.env.Port || 3000 
 
 
-
 app.use('/graphql', graphqlHTTP({
     schema: graphqlSchema,
     rootValue: graphqlResolvers,
