@@ -7,7 +7,12 @@ const events = eventIds => {
     return Event.find({_id: {$in: eventIds}})
     .then(events => {
         return events.map(event => {
-            return { ...event._doc, id: event.id, creator: user.bind(this, event.creator)}
+            return {
+                ...event._doc,
+                id: event.id,
+                date: new Date(event._doc.date).toISOString(),
+                creator: user.bind(this, event.creator)
+            }
         })
     })
     .catch(err => {
@@ -31,14 +36,16 @@ const user = userId => {
 }
 
 
-module.exports = { events: () => {
+module.exports = { 
+    events: () => {
        return Event.find()
        .populate('creator')
         .then(events => {
             return events.map(event => { //to remove metadata that comes with mongoose 
                 return {
                     ...event._doc ,
-                     _id: event._doc._id.toString(),
+                     _id: event._doc._id,
+                     date: new Date(event._doc.date).toISOString(),
                      creator: user.bind(this, event._doc.creator)
                  }
             })
@@ -54,11 +61,15 @@ module.exports = { events: () => {
         creator: "5c1807129c9d8d9060bce20c"
         })
         let createdEvent;
-        console.log(event)
         return event
         .save()
         .then(result => {
-            createdEvent = {...result._doc , _id: event.id }
+            createdEvent = {
+                ...result._doc,
+                _id: result._doc._id.toISOString(),
+                date: new Date(event.doc.date).toISOString(),
+                creator: user.bind(this, result._doc.creator)
+            }
             return User.findById("5c1807129c9d8d9060bce20c")
         })
         .then( user => {
